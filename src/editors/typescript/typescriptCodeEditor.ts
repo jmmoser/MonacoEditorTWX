@@ -24,7 +24,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
             if (this._instanceSettings.language === Languages.TwxTypescript) {
                 this.transpileTypeScript();
             }
-            if (this._instanceSettings.language == Languages.TwxTypescript || this._instanceSettings.language == Languages.TwxJavascript) {
+            if (this._instanceSettings.language === Languages.TwxTypescript || this._instanceSettings.language === Languages.TwxJavascript) {
                 // whenever the new char inserted is a "." or a "]", find the related metadata
                 // TODO: find a better way of doing this, that is more precise
                 if (e.changes && e.changes[0] && (e.changes[0].text == "." || e.changes[0].text == "]")) {
@@ -41,7 +41,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
     }
 
     private addEditorSwitchLanguageAction() {
-        if(this._instanceSettings.language == Languages.TwxJavascript) {
+        if (this._instanceSettings.language == Languages.TwxJavascript) {
             this.languageSwitchAction = this.monacoEditor.addAction({
                 id: "toggleTypescript",
                 label: "Switch to TypeScript",
@@ -51,7 +51,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
                     this.addEditorSwitchLanguageAction();
                 }
             });
-        } else if(this._instanceSettings.language == Languages.TwxTypescript) {
+        } else if (this._instanceSettings.language == Languages.TwxTypescript) {
             this.languageSwitchAction = this.monacoEditor.addAction({
                 id: "toggleJavascript",
                 label: "Switch to JavaScript",
@@ -63,7 +63,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
                 }
             });
         }
-        if(this.onLanguageChangedCallback) {
+        if (this.onLanguageChangedCallback) {
             this.onLanguageChangedCallback(this._instanceSettings.language);
         }
     }
@@ -73,13 +73,13 @@ export class TypescriptCodeEditor extends ServiceEditor {
         this.oldTypescriptCode = this.monacoEditor.getModel().getValue(monaco.editor.EndOfLinePreference.LF);
         const worker = await monaco.languages.typescript.getLanguageWorker(Languages.TwxTypescript)
         // if there is an uri available
-        if(!this.monacoEditor.getModel().uri) {
+        if (!this.monacoEditor.getModel().uri) {
             return;
         }
         const client = await worker(this.monacoEditor.getModel().uri);
         const emitOutput = await client.getEmitOutput(this.monacoEditor.getModel().uri.toString());
         this.javascriptCode = emitOutput.outputFiles[0].text;
-        if(this.onTranspileFinished) {
+        if (this.onTranspileFinished) {
             this.onTranspileFinished(this.javascriptCode);
         }
     };
@@ -88,7 +88,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
      * getValue - Get the latest value. This is either the written code or the transpiled one
      */
     public getValue(): string {
-        if(this._instanceSettings.language == Languages.TwxTypescript) {
+        if (this._instanceSettings.language == Languages.TwxTypescript) {
             return this.javascriptCode;
         } else {
             return super.getValue();
@@ -246,8 +246,8 @@ export class TypescriptCodeEditor extends ServiceEditor {
                 if (!TypescriptCodeEditor.workerManager.containsLib("thingworx/" + entityName + ".d.ts")) {
                     // add the metadata only if it does not exist
                     let metadata = await getEntityMetadata(collection, entity);
-                    let propertyData = {rows: [{}]};
-                    if(collection == "Things") {
+                    let propertyData = { rows: [{}] };
+                    if (collection == "Things") {
                         propertyData = await getThingPropertyValues(entity);
                     }
                     if (metadata) {
@@ -273,7 +273,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
         typescriptMetadata += "\ndeclare namespace twx {\n";
         typescriptMetadata += `\texport interface ${entityType}Interface {\n`;
         typescriptMetadata += `\t'${entityId}': twx.${entityName};\n`;
-        if(entityType == "Things") {
+        if (entityType == "Things") {
             typescriptMetadata += `\t [entityName: string]: twx.GenericThing;\n`;
         }
         // close the class declaration
@@ -289,7 +289,7 @@ export class TypescriptCodeEditor extends ServiceEditor {
      * Refreshes the definitions related to the me context
      * @param serviceModel the thingworx service model
      */
-    public refreshMeDefinitions(meThingModel: {id: string, entityType: string, effectiveShape: any, propertyData: any, serviceDefinition: any}) {
+    public refreshMeDefinitions(meThingModel: { id: string, entityType: string, effectiveShape: any, propertyData: any, serviceDefinition: any }) {
         // if we have a valid entity name and the effectiveShape is set
         if (meThingModel.id && meThingModel.effectiveShape) {
             var entityName = meThingModel.entityType + "" + sanitizeEntityName(meThingModel.id);
@@ -303,11 +303,11 @@ export class TypescriptCodeEditor extends ServiceEditor {
         }
     }
 
-      /**
-     * Uses the typescript compiler API to generate a list of all the entities referenced in a
-     * file and their types
-     * @param {*} code Javascript/Typescript code to analyze
-     */
+    /**
+   * Uses the typescript compiler API to generate a list of all the entities referenced in a
+   * file and their types
+   * @param {*} code Javascript/Typescript code to analyze
+   */
     private async getEntitiesInCode(mode) {
         if (this.monacoEditor.getModel()) {
             let worker = await monaco.languages.typescript.getLanguageWorker(mode);

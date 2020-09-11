@@ -1,4 +1,24 @@
 TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () {
+    function defaultCodeConfiguration(name) {
+        return {
+            dataShape: {
+                fieldDefinitions: {
+                    code: {
+                        baseType: "STRING",
+                        description: "code",
+                        name: "code",
+                        aspects: {},
+                        ordinal: 0
+                    }
+                }
+            },
+            description: name,
+            isMultiRow: false,
+            name: name,
+            rows: [{}]
+        };
+    }
+
     var thisPlugin = this;
     var jqEl = thisPlugin.jqElement;
     jqEl.addClass("twServiceEditor tw-jqPlugin todos-source");
@@ -13,7 +33,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
     var editMode = thisPlugin.properties.editMode;
     var isMyProps = thisPlugin.properties.isMyProps;
     var isEditingServiceOverride = thisPlugin.properties.isEditingServiceOverride;
-    var type = thisPlugin.properties.type;
+    // var type = thisPlugin.properties.type;
     var model = thisPlugin.properties.model;
     var isThingTemplate = thisPlugin.properties.isThingTemplate === true;
     var isThingShape = thisPlugin.properties.isThingShape === true;
@@ -21,7 +41,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
     var svcTimeout = 60;
     var isAsync = false;
     var isAllowOverride = false;
-    var timeoutInterval = 30;
+    // var timeoutInterval = 30;
     var enableQueue = false;
     var useDefaultTimeoutInterval = true;
 
@@ -316,7 +336,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
     var handlerSecondEl = jqSecondEl.find(".service-component-handler");
     var testQueryBtn = jqEl.find(".test-query");
     var scriptEditorcol1El = jqSecondEl.find(".col1");
-    var scriptEditorcol2El = jqSecondEl.find(".col2");
+    // var scriptEditorcol2El = jqSecondEl.find(".col2");
 
     var newCategory = undefined;
     var newTags = undefined;
@@ -481,7 +501,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
                 currentServiceBindings = {};
             }
             var thisSvcBinding = currentServiceBindings[thisProp.name];
-            var remoteThing = "";
+            // var remoteThing = "";
             var remoteService = "";
             if (thisSvcBinding !== undefined) {
                 remoteThing = model.getDefaultEdgeThing();
@@ -978,7 +998,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
 
         fullscreenEditBtn.hide();
 
-        var scriptContainerEl = jqSecondEl.find(".editor-container");
+        // var scriptContainerEl = jqSecondEl.find(".editor-container");
         // thisPlugin.scriptCodeElem.twCodeEditor('adjustHeightWithinContainer',scriptContainerEl);
         //				thisPlugin.scriptCodeElem.twCodeEditor('setHeight',300);
 
@@ -1112,8 +1132,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
         var saveService = function () {
             var implOfThisSvc = thisPlugin.properties.serviceImplementation;
 
-            if (isNew) {
-            }
+            // if (isNew) {}
             if (implOfThisSvc === undefined) {
                 // no implementation yet ... fill in default
                 implOfThisSvc = {
@@ -1122,68 +1141,40 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
                     name: thisPlugin.properties.serviceDefinition.name,
                     handlerName: "Script",
                     configurationTables: {
-                        "Script": {
-                            dataShape: {
-                                "description": "",
-                                "name": "",
-                                "fieldDefinitions": {
-                                    "code": {
-                                        "baseType": "STRING",
-                                        "description": "code",
-                                        "name": "code",
-                                        "aspects": {},
-                                        "ordinal": 0
-                                    }
-                                }
-                            },
-                            description: "Script",
-                            isMultiRow: false,
-                            name: "Script",
-                            rows: [
-                                {
-                                }
-                            ]
-                        }
+                        "Script": defaultCodeConfiguration("Script")
                     }
                 };
             }
+            /**
+             * QUESTIONS:
+             * - Where is thisPlugin.scriptCodeElem added?
+             * - What is scriptCode if thisPlugin.scriptCodeElem.length === 0?
+             */
+            var scriptCode;
             if (thisPlugin.scriptCodeElem.length > 0) {
-                var scriptCode = thisPlugin.scriptCodeElem.twCodeEditor("getProperty", "code");
+                scriptCode = thisPlugin.scriptCodeElem.twCodeEditor("getProperty", "code");
+            } else {
+                console.log('*****: thisPlugin.scriptCodeElem.length is not greater than 0: ' + thisPlugin.scriptCodeElem.length);
             }
+
             if (handlerName === "Script" || handlerName == "TypeScript") {
                 var scriptInfo = implOfThisSvc.configurationTables.Script;
                 // in case they changed handlers
                 delete implOfThisSvc.configurationTables["Query"];
 
                 if (scriptInfo === undefined) {
-                    implOfThisSvc.configurationTables["Script"] = {
-                        dataShape: {
-                            "description": "",
-                            "name": "",
-                            "fieldDefinitions": {
-                                "code": {
-                                    "baseType": "STRING",
-                                    "description": "code",
-                                    "name": "code",
-                                    "aspects": {},
-                                    "ordinal": 0
-                                }
-                            }
-                        },
-                        description: "Script",
-                        isMultiRow: false,
-                        name: "Script",
-                        rows: [
-                            {
-                            }
-                        ]
-                    };
+                    implOfThisSvc.configurationTables["Script"] = defaultCodeConfiguration("Script");
                     scriptInfo = implOfThisSvc.configurationTables.Script;
                 }
                 if (handlerName === "TypeScript") {
                     var transpiledCode = thisPlugin.scriptCodeElem.twCodeEditor("getProperty", "javascriptCode");
                     scriptInfo.rows[1] = { "code": scriptCode };
                     scriptInfo.rows[0] = { "code": transpiledCode };
+                    try {
+                        new Function(transpiledCode);
+                    } catch (err) {
+                        throw new Error(err.message + ': Transpiled code: ' + transpiledCode);
+                    }
                 } else {
                     scriptInfo.rows[0]["code"] = scriptCode;
                     delete scriptInfo.rows[1];
@@ -1191,35 +1182,14 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
                 thisPlugin.scriptObject.code = scriptCode;
                 implOfThisSvc.handlerName = "Script";
 
-            } if (handlerName === "R" || handlerName === "Python") {
+            } else if (handlerName === "R" || handlerName === "Python") {
                 var handlerInfo = implOfThisSvc.configurationTables[handlerName];
 
                 // in case they changed handlers
                 delete implOfThisSvc.configurationTables["Script"];
 
                 if (handlerInfo === undefined) {
-                    implOfThisSvc.configurationTables[handlerName] = {
-                        description: handlerName,
-                        dataShape: {
-                            "description": "",
-                            "name": "",
-                            "fieldDefinitions": {
-                                "code": {
-                                    "baseType": "STRING",
-                                    "description": "code",
-                                    "name": "code",
-                                    "aspects": {},
-                                    "ordinal": 0
-                                }
-                            }
-                        },
-                        isMultiRow: false,
-                        name: handlerName,
-                        rows: [
-                            {
-                            }
-                        ]
-                    };
+                    implOfThisSvc.configurationTables[handlerName] = defaultCodeConfiguration(handlerName);
                     handlerInfo = implOfThisSvc.configurationTables[handlerName];
                 }
 
@@ -1236,8 +1206,6 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
                     implOfThisSvc.configurationTables["Query"] = {
                         description: handlerName,
                         dataShape: {
-                            "description": "",
-                            "name": "",
                             "fieldDefinitions": {
                                 "sql": {
                                     "baseType": "STRING",
@@ -1264,10 +1232,7 @@ TW.jqPlugins.twServiceEditor.prototype._plugin_afterSetProperties = function () 
                         },
                         isMultiRow: false,
                         name: "Query",
-                        rows: [
-                            {
-                            }
-                        ]
+                        rows: [{}]
                     };
                     queryInfo = implOfThisSvc.configurationTables.Query;
                 }

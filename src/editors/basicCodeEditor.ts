@@ -33,6 +33,10 @@ export class MonacoCodeEditor {
     monacoEditor: monaco.editor.IStandaloneCodeEditor;
     _currentEditorSettings: MonacoEditorSettings;
     _instanceSettings: MonacoInstanceSettings;
+    
+    _containerObserver: MutationObserver;
+    _containerWidth: string;
+    _containerHeight: string;
 
     public state = {
         msg: {
@@ -64,6 +68,21 @@ export class MonacoCodeEditor {
         this.initializeDiffEditor();
         this.monacoEditor.layout();
         this.monacoEditor.focus();
+
+        const that = this;
+
+        this._containerObserver = new MutationObserver(function (mutations) {
+            const { width, height } = container.style;
+            if (width !== that._containerWidth || height !== that._containerHeight) {
+                that._containerWidth = width;
+                that._containerHeight = height;
+                that.monacoEditor.layout();
+            }
+        });
+
+        this._containerObserver.observe(container, {
+            attributes: true
+        });
     }
 
     /**
